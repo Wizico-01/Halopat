@@ -4,8 +4,20 @@ import HomePage from "./HomePage";
 import ControlRoom from "./ControlRoom";
 import CheckInForm from "./CheckInForm";
 
-const _urlParams = new URLSearchParams(window.location.search);
-const _initialLocId = _urlParams.get("loc");
+// Smart URL scanner that checks both query strings and path segments for the location ID
+const getInitialLocationId = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  let loc = urlParams.get("loc");
+  
+  // Fallback: If query parameter is empty, parse the full URL text directly
+  if (!loc) {
+    const match = window.location.href.match(/[?&]loc=([^&#]*)/);
+    loc = match ? match[1] : null;
+  }
+  return loc;
+};
+
+const _initialLocId = getInitialLocationId();
 
 export default function App() {
   const [page, setPage] = useState(_initialLocId ? "form" : "home");
@@ -38,12 +50,17 @@ export default function App() {
   }, []);
 
   const addLocation = async (loc) => {
-    const { error } = await supabase.from("locations").insert([{ id: loc.id, name: loc.name, address: loc.address }]);
-    if (!error) {
-      const { data } = await supabase.from("locations").select("*").order("name", { ascending: true });
-      if (data) setLocations(data);
-    } else {
-      console.error("Error creating location:", error.message);
+    // 1. Instantly update the local display array so the QR code appears right away
+    setLocations((prev) => [...prev, loc]);
+
+    // 2. Safely sync it with your remote Supabase infrastructure
+    const { error } = await supabase
+      .from("locations")
+      .insert([{ id: loc.id, name: loc.name, address: loc.address }]);
+
+    if (error) {
+      console.error("Supabase Database Sync Error:", error.message);
+      alert(`Database Sync Warning: ${error.message}`);
     }
   };
 

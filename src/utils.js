@@ -26,4 +26,4 @@ export function exportExcel(reportsData) {
 }
 
 export const qrUrl = (text, size = 200) =>
-  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=0a1128&color=f0a500&format=png`;
+  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=0-17-40&color=240-165-0`;
