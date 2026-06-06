@@ -50,19 +50,17 @@ export default function App() {
   }, []);
 
   const addLocation = async (loc) => {
-    // 1. Instantly update the local display array so the QR code appears right away
+  const { error } = await supabase
+    .from("locations")
+    .insert([{ id: loc.id, name: loc.name, address: loc.address }]);
+
+  if (!error) {
+    // Only add to screen after confirmed saved in database
     setLocations((prev) => [...prev, loc]);
-
-    // 2. Safely sync it with your remote Supabase infrastructure
-    const { error } = await supabase
-      .from("locations")
-      .insert([{ id: loc.id, name: loc.name, address: loc.address }]);
-
-    if (error) {
-      console.error("Supabase Database Sync Error:", error.message);
-      alert(`Database Sync Warning: ${error.message}`);
-    }
-  };
+  } else {
+    console.error("Failed to save location:", error.message);
+  }
+};
 
   const addReport = async (r) => {
     const { error } = await supabase.from("reports").insert([{

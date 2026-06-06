@@ -2,6 +2,7 @@ import { useState } from "react";
 import HalogenLogo from "./HalogenLogo";
 import { generateId, qrUrl } from "./utils";
 
+
 export default function HomePage({ setPage, locations = [], setFormLocationId, addLocation, reports = [] }) {
   const [showQRPanel, setShowQRPanel] = useState(false);
   const [selectedQR, setSelectedQR] = useState(null);

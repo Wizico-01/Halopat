@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// It will try to use env variables first, and fallback to your strings if they are missing
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://ujunyfpzekhgiropkzgi.supabase.co/rest/v1/";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqdW55ZnB6ZWtoZ2lyb3BremdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTIzMzQsImV4cCI6MjA5NjE2ODMzNH0.F7KI5fkzvlvnH3TBbCrqzTKvIuDtmktWzgcVwIjkqYk";
+const supabaseUrl = "https://ujunyfpzekhgiropkzgi.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqdW55ZnB6ZWtoZ2lyb3BremdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTIzMzQsImV4cCI6MjA5NjE2ODMzNH0.F7KI5fkzvlvnH3TBbCrqzTKvIuDtmktWzgcVwIjkqYk";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
