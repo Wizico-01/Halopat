@@ -4,20 +4,8 @@ import HomePage from "./HomePage";
 import ControlRoom from "./ControlRoom";
 import CheckInForm from "./CheckInForm";
 
-// Smart URL scanner that checks both query strings and path segments for the location ID
-const getInitialLocationId = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  let loc = urlParams.get("loc");
-  
-  // Fallback: If query parameter is empty, parse the full URL text directly
-  if (!loc) {
-    const match = window.location.href.match(/[?&]loc=([^&#]*)/);
-    loc = match ? match[1] : null;
-  }
-  return loc;
-};
-
-const _initialLocId = getInitialLocationId();
+const _urlParams = new URLSearchParams(window.location.search);
+const _initialLocId = _urlParams.get("loc");
 
 export default function App() {
   const [page, setPage] = useState(_initialLocId ? "form" : "home");
@@ -50,17 +38,24 @@ export default function App() {
   }, []);
 
   const addLocation = async (loc) => {
-  const { error } = await supabase
-    .from("locations")
-    .insert([{ id: loc.id, name: loc.name, address: loc.address }]);
+    const { error } = await supabase
+      .from("locations")
+      .insert([{ id: loc.id, name: loc.name, address: loc.address }]);
+    if (!error) {
+      setLocations((prev) => [...prev, loc]);
+    } else {
+      console.error("Failed to save location:", error.message);
+    }
+  };
 
-  if (!error) {
-    // Only add to screen after confirmed saved in database
-    setLocations((prev) => [...prev, loc]);
-  } else {
-    console.error("Failed to save location:", error.message);
-  }
-};
+  const deleteLocation = async (id) => {
+    const { error } = await supabase.from("locations").delete().eq("id", id);
+    if (!error) {
+      setLocations((prev) => prev.filter(l => l.id !== id));
+    } else {
+      console.error("Failed to delete location:", error.message);
+    }
+  };
 
   const addReport = async (r) => {
     const { error } = await supabase.from("reports").insert([{
@@ -108,7 +103,7 @@ export default function App() {
         .fade-in { animation: fadeIn 0.5s ease forwards; }
       `}</style>
 
-      {page === "home" && <HomePage setPage={setPage} locations={locations} setFormLocationId={setFormLocationId} addLocation={addLocation} reports={reports} />}
+      {page === "home" && <HomePage setPage={setPage} locations={locations} setFormLocationId={setFormLocationId} addLocation={addLocation} deleteLocation={deleteLocation} reports={reports} />}
       {page === "control" && <ControlRoom setPage={setPage} reports={reports} locations={locations} />}
       {page === "form" && <CheckInForm setPage={setPage} locationId={formLocationId} locations={locations} addReport={addReport} submitted={submitted} setSubmitted={setSubmitted} />}
     </div>

@@ -2,9 +2,8 @@ import { useState } from "react";
 import HalogenLogo from "./HalogenLogo";
 import { generateId, qrUrl } from "./utils";
 
-
-export default function HomePage({ setPage, locations = [], setFormLocationId, addLocation, reports = [] }) {
-  const [showQRPanel, setShowQRPanel] = useState(false);
+export default function HomePage({ setPage, locations = [], setFormLocationId, addLocation, deleteLocation, reports = [] }) {
+  const [showQRPanel, setShowQRPanel] = useState(true); // open by default
   const [selectedQR, setSelectedQR] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLoc, setNewLoc] = useState({ name: "", address: "" });
@@ -21,16 +20,11 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
     addLocation(loc);
     setNewLoc({ name: "", address: "" });
     setShowAddModal(false);
-    // Automatically open the manager panel to show the newly added location card
     setShowQRPanel(true);
   };
 
-  // Dynamic path configuration ensuring scanning works flawlessly on both localhost and live production links
-  const formUrl = (id) => {
-    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-    const base = isLocal ? "http://localhost:5173/Halopat/" : "https://wizico-01.github.io/Halopat/";
-    return `${base}?loc=${id}`;
-  };
+  // Always use the live GitHub Pages URL for QR codes
+  const formUrl = (id) => `https://wizico-01.github.io/Halopat/?loc=${id}`;
 
   const todayStr = new Date().toISOString().slice(0, 10);
 
@@ -61,7 +55,6 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
         </h1>
         <p style={{ color: "#7a8099", fontSize: 14, letterSpacing: 2, marginBottom: 40 }}>PATROL ATTENDANCE TRACKING SYSTEM</p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-          {/* Enhanced button interactions to slide out panels and access modals fluidly */}
           <button className="btn-gold" style={{ fontSize: 16, padding: "14px 36px" }} onClick={() => setShowQRPanel(!showQRPanel)}>MANAGE QR CODES</button>
           <button className="btn-outline" style={{ fontSize: 16, padding: "14px 36px" }} onClick={() => { setFormLocationId(locations[0]?.id || null); setPage("form"); }}>VIEW CHECK-IN FORM</button>
           <button className="btn-outline" style={{ fontSize: 16, padding: "14px 36px" }} onClick={() => setPage("control")}>CONTROL ROOM</button>
@@ -97,16 +90,23 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
               {filtered.map(loc => (
                 <div key={loc.id}
-                  style={{ background: "rgba(240,165,0,0.05)", border: "1px solid rgba(240,165,0,0.2)", borderRadius: 10, padding: 16, textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}
+                  style={{ background: "rgba(240,165,0,0.05)", border: "1px solid rgba(240,165,0,0.2)", borderRadius: 10, padding: 16, textAlign: "center", cursor: "pointer", transition: "all 0.2s", position: "relative" }}
                   onClick={() => setSelectedQR(selectedQR?.id === loc.id ? null : loc)}
                   onMouseEnter={e => e.currentTarget.style.borderColor = "#f0a500"}
                   onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(240,165,0,0.2)"}
                 >
+                  {/* Delete button */}
+                  <button
+                    onClick={e => { e.stopPropagation(); if (window.confirm(`Delete "${loc.name}"?`)) deleteLocation(loc.id); }}
+                    style={{ position: "absolute", top: 8, right: 8, background: "rgba(255,80,80,0.15)", border: "1px solid rgba(255,80,80,0.4)", borderRadius: 4, color: "#ff6b6b", fontSize: 11, padding: "2px 7px", cursor: "pointer" }}>
+                    ✕
+                  </button>
+
                   <div style={{ fontSize: 11, color: "#f0a500", fontFamily: "'Rajdhani', sans-serif", letterSpacing: 1, marginBottom: 6 }}>{loc.id}</div>
-                  <img src={qrUrl(formUrl(loc.id), 140)} alt="Scan QR Code" style={{ width: 140, height: 140, borderRadius: 8 }} />
+                  <img src={qrUrl(formUrl(loc.id), 140)} alt="QR" style={{ width: 140, height: 140, borderRadius: 8 }} />
                   <div style={{ fontSize: 13, fontWeight: 600, marginTop: 8, color: "#e8e8f0" }}>{loc.name}</div>
                   <div style={{ fontSize: 11, color: "#7a8099", marginTop: 4 }}>{loc.address}</div>
                   <div style={{ marginTop: 12, display: "flex", gap: 6, justifyContent: "center" }}>
@@ -122,7 +122,7 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
 
             {selectedQR && (
               <div className="fade-in" style={{ marginTop: 24, padding: 24, background: "rgba(10,17,40,0.8)", borderRadius: 12, border: "1px solid #f0a500", display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
-                <img src={qrUrl(formUrl(selectedQR.id), 220)} alt="QR Preview" style={{ borderRadius: 12, width: 220, height: 220 }} />
+                <img src={qrUrl(formUrl(selectedQR.id), 220)} alt="QR Large" style={{ borderRadius: 12, width: 220, height: 220 }} />
                 <div>
                   <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 28, fontWeight: 700, color: "#f0a500", letterSpacing: 2 }}>{selectedQR.name}</div>
                   <div style={{ color: "#7a8099", marginTop: 4, marginBottom: 12 }}>{selectedQR.address}</div>
