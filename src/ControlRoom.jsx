@@ -55,8 +55,8 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 28 }}>
           {[
-            { label: "Total Check-ins", value: reports.length, color: "#f0a500" },
-            { label: "Today's Check-ins", value: todayReports.length, color: "#7ec8ff" },
+            { label: "TOTAL PATROL", value: reports.length, color: "#f0a500" },
+            { label: "Today's Patrol", value: todayReports.length, color: "#7ec8ff" },
             { label: "TSL Officers", value: reports.filter(r => r.rank === "TSL").length, color: "#f0a500" },
             { label: "TSS Officers", value: reports.filter(r => r.rank === "TSS").length, color: "#7ec8ff" },
           ].map(s => (
