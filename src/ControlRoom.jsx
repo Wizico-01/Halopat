@@ -49,7 +49,7 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
         {newAlert && (
           <div className="fade-in" style={{ background: "rgba(240,165,0,0.12)", border: "1px solid #f0a500", borderRadius: 8, padding: "12px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
             <span className="pulse" style={{ color: "#f0a500", fontSize: 20 }}>🔔</span>
-            <span style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 14, letterSpacing: 1 }}>NEW CHECK-IN RECEIVED</span>
+            <span style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 14, letterSpacing: 1 }}>PATROL RECEIVED</span>
           </div>
         )}
 

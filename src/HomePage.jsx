@@ -42,7 +42,7 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
         <div style={{ display: "flex", gap: 8 }}>
           <button className="nav-btn active" onClick={() => setPage("home")}>HOME</button>
           <button className="nav-btn" onClick={() => setPage("control")}>CONTROL ROOM</button>
-          <button className="nav-btn" onClick={() => { setFormLocationId(locations[0]?.id || null); setPage("form"); }}>CHECK-IN FORM</button>
+          <button className="nav-btn" onClick={() => { setFormLocationId(locations[0]?.id || null); setPage("form"); }}>PATROL FORM</button>
         </div>
       </nav>
 
@@ -56,7 +56,7 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
         <p style={{ color: "#7a8099", fontSize: 14, letterSpacing: 2, marginBottom: 40 }}>PATROL ATTENDANCE TRACKING SYSTEM</p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
           <button className="btn-gold" style={{ fontSize: 16, padding: "14px 36px" }} onClick={() => setShowQRPanel(!showQRPanel)}>MANAGE QR CODES</button>
-          <button className="btn-outline" style={{ fontSize: 16, padding: "14px 36px" }} onClick={() => { setFormLocationId(locations[0]?.id || null); setPage("form"); }}>VIEW CHECK-IN FORM</button>
+          <button className="btn-outline" style={{ fontSize: 16, padding: "14px 36px" }} onClick={() => { setFormLocationId(locations[0]?.id || null); setPage("form"); }}>VIEW PATROL FORM</button>
           <button className="btn-outline" style={{ fontSize: 16, padding: "14px 36px" }} onClick={() => setPage("control")}>CONTROL ROOM</button>
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, maxWidth: 700, margin: "0 auto 40px", padding: "0 24px" }}>
         {[
           { label: "Active Locations", value: locations.length, icon: "📍" },
-          { label: "Check-ins Today", value: reports.filter(r => (r.created_at || "").startsWith(todayStr)).length, icon: "✅" },
+          { label: "TODAY'S PATROL", value: reports.filter(r => (r.created_at || "").startsWith(todayStr)).length, icon: "✅" },
           { label: "Total Reports", value: reports.length, icon: "📊" },
         ].map(s => (
           <div key={s.label} className="card" style={{ textAlign: "center" }}>

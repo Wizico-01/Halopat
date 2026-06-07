@@ -2,7 +2,7 @@ import { useState } from "react";
 import HalogenLogo from "./HalogenLogo";
 import { now } from "./utils";
 
-export default function CheckInForm({ setPage, locationId, locations = [], addReport, submitted, setSubmitted }) {
+export default function PatrolForm({ setPage, locationId, locations = [], addReport, submitted, setSubmitted }) {
   const [name, setName] = useState("");
   const [rank, setRank] = useState("");
   const [error, setError] = useState("");
@@ -29,12 +29,10 @@ export default function CheckInForm({ setPage, locationId, locations = [], addRe
       <div className="fade-in" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, background: "#0a1128" }}>
         <HalogenLogo size={80} />
         <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 64, color: "#00e87a", marginTop: 16 }}>✓</div>
-        <h2 style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 28, letterSpacing: 3, marginTop: 8 }}>CHECK-IN <span className="gold">SUCCESSFUL</span></h2>
+        <h2 style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 28, letterSpacing: 3, marginTop: 8 }}>REPORT SUBMITION <span className="gold">SUCCESSFUL</span></h2>
         <p style={{ color: "#7a8099", marginTop: 8, textAlign: "center" }}>Your attendance has been recorded at <strong style={{ color: "#f0a500" }}>{location?.name}</strong></p>
         <p style={{ fontSize: 12, color: "#7a8099", marginTop: 4 }}>Time: {now()}</p>
         <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap", justifyContent: "center" }}>
-          <button className="btn-outline" onClick={() => { setSubmitted(false); setName(""); setRank(""); }}>CHECK IN AGAIN</button>
-          <button className="btn-gold" onClick={() => setPage("control")}>VIEW CONTROL ROOM</button>
         </div>
       </div>
     );
@@ -49,7 +47,7 @@ export default function CheckInForm({ setPage, locationId, locations = [], addRe
           <h1 style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 32, fontWeight: 700, letterSpacing: 5, marginTop: 12 }}>
             HALO<span className="gold">PAT</span>
           </h1>
-          <p style={{ fontSize: 11, color: "#7a8099", letterSpacing: 2, marginTop: 4 }}>PATROL CHECK-IN</p>
+          <p style={{ fontSize: 11, color: "#7a8099", letterSpacing: 2, marginTop: 4 }}>PATROL FORM</p>
         </div>
 
         {location ? (
@@ -57,10 +55,6 @@ export default function CheckInForm({ setPage, locationId, locations = [], addRe
             <div style={{ fontSize: 11, color: "#7a8099", letterSpacing: 1, marginBottom: 4 }}>LOCATION</div>
             <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 18, fontWeight: 700, color: "#f0a500" }}>{location.name}</div>
             <div style={{ fontSize: 12, color: "#7a8099", marginTop: 2 }}>{location.address}</div>
-          </div>
-        ) : (
-          <div style={{ background: "rgba(255,107,107,0.08)", border: "1px solid rgba(255,107,107,0.25)", borderRadius: 8, padding: "12px 16px", marginBottom: 24, textAlign: "center", color: "#ff6b6b" }}>
-            No Active Locations Found. Please configure one in Home Page.
           </div>
         )}
 
