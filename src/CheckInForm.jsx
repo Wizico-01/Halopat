@@ -1,32 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HalogenLogo from "./HalogenLogo";
-import { now } from "./utils"; // Fixed import name to match your utils file helper
+import { now } from "./utils";
 
 export default function PatrolForm({ setPage, locationId, locations = [], addReport, submitted, setSubmitted }) {
   const [name, setName] = useState("");
   const [rank, setRank] = useState("");
   const [error, setError] = useState("");
+  const [gps, setGps] = useState(null);
+  const [gpsStatus, setGpsStatus] = useState("requesting");
 
   const location = locations.find(l => l.id === locationId) || locations[0];
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGpsStatus("denied");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGps({
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+          accuracy: Math.round(pos.coords.accuracy),
+        });
+        setGpsStatus("granted");
+      },
+      () => {
+        setGpsStatus("denied");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
 
   const handleSubmit = () => {
     if (!name.trim()) { setError("Please enter your full name."); return; }
     if (!rank) { setError("Please select your rank."); return; }
     if (!location) { setError("No valid location selected."); return; }
+    if (gpsStatus === "requesting") { setError("Waiting for GPS location. Please wait..."); return; }
     setError("");
-    
     addReport({
       locationId: location.id,
       locationName: location.name,
       name: name.trim(),
       rank,
-      timestamp: nowStr(), // Updated to nowStr()
+      timestamp: now(),
       status: "On Duty",
+      gpsLat: gps?.lat || null,
+      gpsLng: gps?.lng || null,
+      gpsAccuracy: gps?.accuracy || null,
     });
   };
 
   const handleResetAndHome = () => {
-    // Safely clear form memory and bounce back to operational dashboard
     setName("");
     setRank("");
     setSubmitted(false);
@@ -44,9 +69,12 @@ export default function PatrolForm({ setPage, locationId, locations = [], addRep
         <p style={{ color: "#7a8099", marginTop: 8, textAlign: "center" }}>
           Your attendance has been recorded at <strong style={{ color: "#f0a500" }}>{location?.name}</strong>
         </p>
-        <p style={{ fontSize: 12, color: "#7a8099", marginTop: 4 }}>Time: {nowStr()}</p>
-        
-        {/* Wired up action buttons so users can exit the screen cleanly */}
+        <p style={{ fontSize: 12, color: "#7a8099", marginTop: 4 }}>Time: {now()}</p>
+        {gps && (
+          <p style={{ fontSize: 12, color: "#7a8099", marginTop: 4 }}>
+            📍 GPS: {gps.lat}, {gps.lng} (±{gps.accuracy}m)
+          </p>
+        )}
         <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap", justifyContent: "center" }}>
           <button className="btn-gold" style={{ padding: "12px 32px" }} onClick={handleResetAndHome}>
             RETURN TO DASHBOARD
@@ -75,6 +103,17 @@ export default function PatrolForm({ setPage, locationId, locations = [], addRep
             <div style={{ fontSize: 12, color: "#7a8099", marginTop: 2 }}>{location.address}</div>
           </div>
         ) : null}
+
+        {/* GPS Status Banner */}
+        <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 8, textAlign: "center", fontSize: 12,
+          background: gpsStatus === "granted" ? "rgba(0,232,122,0.08)" : gpsStatus === "denied" ? "rgba(255,107,107,0.08)" : "rgba(240,165,0,0.08)",
+          border: `1px solid ${gpsStatus === "granted" ? "rgba(0,232,122,0.3)" : gpsStatus === "denied" ? "rgba(255,107,107,0.3)" : "rgba(240,165,0,0.3)"}`,
+          color: gpsStatus === "granted" ? "#00e87a" : gpsStatus === "denied" ? "#ff6b6b" : "#f0a500"
+        }}>
+          {gpsStatus === "requesting" && "📡 Requesting your GPS location..."}
+          {gpsStatus === "granted" && `✅ GPS locked: ${gps?.lat}, ${gps?.lng} (±${gps?.accuracy}m)`}
+          {gpsStatus === "denied" && "⚠️ Location denied — check-in will proceed without GPS"}
+        </div>
 
         <div className="card" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div>

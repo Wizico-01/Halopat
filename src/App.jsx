@@ -64,6 +64,9 @@ export default function App() {
       name: r.name,
       rank: r.rank,
       status: "On Duty",
+      gps_lat: r.gpsLat,
+      gps_lng: r.gpsLng,
+      gps_accuracy: r.gpsAccuracy,
     }]);
     if (!error) {
       setSubmitted(true);

@@ -7,13 +7,16 @@ export function now() {
 }
 
 export function exportExcel(reportsData) {
-  const headers = ["Report ID", "Location ID", "Location Name", "Officer Name", "Rank", "Timestamp", "Status"];
+  const headers = ["Report ID", "Location ID", "Location Name", "Officer Name", "Rank", "GPS Lat", "GPS Lng", "GPS Accuracy", "Timestamp", "Status"];
   const rows = reportsData.map(r => [
     r.id,
     r.location_id || r.locationId,
     r.location_name || r.locationName,
     r.name,
     r.rank,
+    r.gps_lat || "N/A",
+    r.gps_lng || "N/A",
+    r.gps_accuracy ? `±${r.gps_accuracy}m` : "N/A",
     r.created_at || r.timestamp,
     r.status
   ]);
@@ -26,4 +29,4 @@ export function exportExcel(reportsData) {
 }
 
 export const qrUrl = (text, size = 200) =>
-  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=0-17-40&color=240-165-0`;
+  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&bgcolor=0a1128&color=f0a500&format=png`;

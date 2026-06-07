@@ -48,10 +48,10 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
 
       {/* ── Hero ── */}
       <div style={{ textAlign: "center", padding: "60px 20px 40px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 600, height: 600, background: "radial-gradient(circle, rgba(240,165,0,0.07) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 600, height: 600, background: "radial-gradient(circle, rgba(250, 173, 7, 0.07) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
         <HalogenLogo size={90} />
         <h1 style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 48, fontWeight: 700, letterSpacing: 6, marginTop: 16, marginBottom: 8 }}>
-          HALO<span className="gold">PAT</span>
+        <span className="gold">HALOPAT</span>
         </h1>
         <p style={{ color: "#7a8099", fontSize: 14, letterSpacing: 2, marginBottom: 40 }}>PATROL ATTENDANCE TRACKING SYSTEM</p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>

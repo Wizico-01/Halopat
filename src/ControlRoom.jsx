@@ -45,7 +45,7 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
         </div>
       </nav>
 
-      <div style={{ padding: "32px 32px", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ padding: "32px 32px", maxWidth: 1200, margin: "0 auto" }}>
         {newAlert && (
           <div className="fade-in" style={{ background: "rgba(240,165,0,0.12)", border: "1px solid #f0a500", borderRadius: 8, padding: "12px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
             <span className="pulse" style={{ color: "#f0a500", fontSize: 20 }}>🔔</span>
@@ -101,19 +101,29 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
                   <th>OFFICER NAME</th>
                   <th>RANK</th>
                   <th>LOCATION</th>
+                  <th>GPS COORDINATES</th>
                   <th>TIMESTAMP</th>
                   <th>STATUS</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={6} style={{ textAlign: "center", color: "#7a8099", padding: 32 }}>No records found</td></tr>
+                  <tr><td colSpan={7} style={{ textAlign: "center", color: "#7a8099", padding: 32 }}>No records found</td></tr>
                 ) : filtered.map((r, index) => (
                   <tr key={r.id || index}>
                     <td style={{ color: "#f0a500", fontFamily: "'Rajdhani', sans-serif", fontSize: 12 }}>{r.id}</td>
                     <td style={{ fontWeight: 600 }}>{r.name}</td>
                     <td><span className={r.rank === "TSL" ? "badge-tsl" : "badge-tss"}>{r.rank}</span></td>
                     <td style={{ color: "#b0b8d0" }}>{r.location_name || r.locationName}</td>
+                    <td style={{ fontSize: 11, fontFamily: "monospace" }}>
+                      {r.gps_lat && r.gps_lng
+                        ? <a href={`https://maps.google.com/?q=${r.gps_lat},${r.gps_lng}`} target="_blank" rel="noreferrer"
+                            style={{ color: "#f0a500", textDecoration: "none" }}>
+                            📍 {r.gps_lat}, {r.gps_lng}
+                          </a>
+                        : <span style={{ color: "#444" }}>No GPS</span>
+                      }
+                    </td>
                     <td style={{ color: "#7a8099", fontSize: 12, fontFamily: "monospace" }}>
                       {r.created_at ? new Date(r.created_at).toLocaleString() : r.timestamp}
                     </td>
