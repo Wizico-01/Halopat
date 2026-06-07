@@ -1,6 +1,6 @@
 import { useState } from "react";
 import HalogenLogo from "./HalogenLogo";
-import { nowStr } from "./utils"; // Fixed import name to match your utils file helper
+import { now } from "./utils"; // Fixed import name to match your utils file helper
 
 export default function PatrolForm({ setPage, locationId, locations = [], addReport, submitted, setSubmitted }) {
   const [name, setName] = useState("");

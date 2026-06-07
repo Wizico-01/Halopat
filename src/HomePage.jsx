@@ -64,9 +64,9 @@ export default function HomePage({ setPage, locations = [], setFormLocationId, a
       {/* ── Stats ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, maxWidth: 700, margin: "0 auto 40px", padding: "0 24px" }}>
         {[
-          { label: "Active Locations", value: locations.length, icon: "📍" },
-          { label: "TODAY'S PATROL", value: reports.filter(r => (r.created_at || "").startsWith(todayStr)).length, icon: "✅" },
-          { label: "Total Reports", value: reports.length, icon: "📊" },
+          { label: "Active Locations", value: locations.length, },
+          { label: "TODAY'S PATROL", value: reports.filter(r => (r.created_at || "").startsWith(todayStr)).length, },
+          { label: "Total Reports", value: reports.length,},
         ].map(s => (
           <div key={s.label} className="card" style={{ textAlign: "center" }}>
             <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>
