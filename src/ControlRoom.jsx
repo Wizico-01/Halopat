@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import HalogenLogo from "./HalogenLogo";
 
 export default function ControlRoom({ setPage, reports = [], locations = [] }) {
@@ -13,25 +13,57 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
   useEffect(() => {
     if (reports.length > prevCount.current) {
       setNewAlert(true);
-      setTimeout(() => setNewAlert(false), 4000);
+      const timer = setTimeout(() => setNewAlert(false), 4000);
+      return () => clearTimeout(timer); // Clean up timeout to prevent memory leaks
     }
     prevCount.current = reports.length;
   }, [reports]);
 
-  // Filter by selected date first, then apply other filters
-  const filtered = reports
-    .filter(r => {
-      const ts = r.created_at ? new Date(r.created_at).toISOString().slice(0, 10) : (r.timestamp || "").slice(0, 10);
-      return ts === selectedDate;
-    })
-    .filter(r => {
-      const nameMatch = r.name?.toLowerCase().includes(filter.toLowerCase());
-      const locMatch = r.location_name?.toLowerCase().includes(filter.toLowerCase()) || r.locationName?.toLowerCase().includes(filter.toLowerCase());
-      const matchText = nameMatch || locMatch;
-      const matchRank = rankFilter === "ALL" || r.rank === rankFilter;
-      const matchLoc = locFilter === "ALL" || r.location_id === locFilter || r.locationId === locFilter;
-      return matchText && matchRank && matchLoc;
+  // Combined filters into a single useMemo loop for ultimate performance
+  const filtered = useMemo(() => {
+    const searchLower = filter.toLowerCase();
+    
+    return reports.filter(r => {
+      // 1. Date Filter
+      const ts = r.created_at ? r.created_at.slice(0, 10) : (r.timestamp || "").slice(0, 10);
+      if (ts !== selectedDate) return false;
+
+      // 2. Text Search Filter
+      const nameMatch = r.name?.toLowerCase().includes(searchLower);
+      const locMatch = (r.location_name || r.locationName)?.toLowerCase().includes(searchLower);
+      if (filter && !nameMatch && !locMatch) return false;
+
+      // 3. Rank Filter
+      if (rankFilter !== "ALL" && r.rank !== rankFilter) return false;
+
+      // 4. Location Filter
+      const currentLocId = r.location_id || r.locationId;
+      if (locFilter !== "ALL" && String(currentLocId) !== String(locFilter)) return false;
+
+      return true;
     });
+  }, [reports, selectedDate, filter, rankFilter, locFilter]);
+
+  // Derive stats directly from filtered array without re-looping entirely
+  const stats = useMemo(() => {
+    let tslCount = 0;
+    let tssCount = 0;
+    const activeLocs = new Set();
+
+    filtered.forEach(r => {
+      if (r.rank === "TSL") tslCount++;
+      if (r.rank === "TSS") tssCount++;
+      const locId = r.location_id || r.locationId;
+      if (locId) activeLocs.add(locId);
+    });
+
+    return {
+      total: filtered.length,
+      tsl: tslCount,
+      tss: tssCount,
+      locationsCount: activeLocs.size
+    };
+  }, [filtered]);
 
   const exportDaily = () => {
     const headers = ["Report ID", "Officer Name", "Rank", "Location", "GPS Lat", "GPS Lng", "Timestamp", "Status"];
@@ -45,8 +77,13 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
       r.created_at ? new Date(r.created_at).toLocaleString() : r.timestamp,
       r.status || "On Duty",
     ]);
-    const csv = [headers, ...rows].map(row => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    
+    // Safely escape commas for CSV safety
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `HALOPAT_Report_${selectedDate}.csv`;
@@ -111,10 +148,10 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
         {/* ── Stats for selected date ── */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 28 }}>
           {[
-            { label: "TOTAL PATROL", value: filtered.length, color: "#f0a500" },
-            { label: "TSL Officers", value: filtered.filter(r => r.rank === "TSL").length, color: "#f0a500" },
-            { label: "TSS Officers", value: filtered.filter(r => r.rank === "TSS").length, color: "#7ec8ff" },
-            { label: "Locations Active", value: [...new Set(filtered.map(r => r.location_id || r.locationId))].length, color: "#7ec8ff" },
+            { label: "TOTAL PATROL", value: stats.total, color: "#f0a500" },
+            { label: "TSL Officers", value: stats.tsl, color: "#f0a500" },
+            { label: "TSS Officers", value: stats.tss, color: "#7ec8ff" },
+            { label: "Locations Active", value: stats.locationsCount, color: "#7ec8ff" },
           ].map(s => (
             <div key={s.label} className="card" style={{ textAlign: "center" }}>
               <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 40, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -187,7 +224,7 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
                     <td style={{ color: "#b0b8d0" }}>{r.location_name || r.locationName}</td>
                     <td style={{ fontSize: 11, fontFamily: "monospace" }}>
                       {r.gps_lat && r.gps_lng
-                        ? <a href={`https://maps.google.com/?q=${r.gps_lat},${r.gps_lng}`} target="_blank" rel="noreferrer"
+                        ? <a href={`https://www.google.com/maps/search/?api=1&query=${r.gps_lat},${r.gps_lng}`} target="_blank" rel="noreferrer"
                             style={{ color: "#f0a500", textDecoration: "none" }}>
                             📍 {r.gps_lat}, {r.gps_lng}
                           </a>
@@ -208,4 +245,4 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
       </div>
     </div>
   );
-      }
+                  }
