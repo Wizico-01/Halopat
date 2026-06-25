@@ -124,8 +124,8 @@ export default function PatrolForm({ setPage, locationId, locations = [], addRep
             <label style={{ fontSize: 11, color: "#7a8099", letterSpacing: 1.5, display: "block", marginBottom: 8 }}>RANK *</label>
             <select value={rank} onChange={e => setRank(e.target.value)}>
               <option value="">-- Select your rank --</option>
-              <option value="TSL">TSL – Team Supervisor/Leader</option>
-              <option value="TSS">TSS – Team Security Staff</option>
+              <option value="TSL">TSL – Team Security Leader</option>
+              <option value="TSS">TSS – Territory Security Supervisor</option>
             </select>
           </div>
           {error && (
