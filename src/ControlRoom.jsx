@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import HalogenLogo from "./HalogenLogo";
-import { exportExcel } from "./utils";
 
 export default function ControlRoom({ setPage, reports = [], locations = [] }) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [filter, setFilter] = useState("");
   const [rankFilter, setRankFilter] = useState("ALL");
   const [locFilter, setLocFilter] = useState("ALL");
@@ -17,17 +18,46 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
     prevCount.current = reports.length;
   }, [reports]);
 
-  const filtered = reports.filter(r => {
-    const nameMatch = r.name?.toLowerCase().includes(filter.toLowerCase());
-    const locMatch = r.location_name?.toLowerCase().includes(filter.toLowerCase()) || r.locationName?.toLowerCase().includes(filter.toLowerCase());
-    const matchText = nameMatch || locMatch;
-    const matchRank = rankFilter === "ALL" || r.rank === rankFilter;
-    const matchLoc = locFilter === "ALL" || r.location_id === locFilter || r.locationId === locFilter;
-    return matchText && matchRank && matchLoc;
-  });
+  // Filter by selected date first, then apply other filters
+  const filtered = reports
+    .filter(r => {
+      const ts = r.created_at ? new Date(r.created_at).toISOString().slice(0, 10) : (r.timestamp || "").slice(0, 10);
+      return ts === selectedDate;
+    })
+    .filter(r => {
+      const nameMatch = r.name?.toLowerCase().includes(filter.toLowerCase());
+      const locMatch = r.location_name?.toLowerCase().includes(filter.toLowerCase()) || r.locationName?.toLowerCase().includes(filter.toLowerCase());
+      const matchText = nameMatch || locMatch;
+      const matchRank = rankFilter === "ALL" || r.rank === rankFilter;
+      const matchLoc = locFilter === "ALL" || r.location_id === locFilter || r.locationId === locFilter;
+      return matchText && matchRank && matchLoc;
+    });
 
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const todayReports = reports.filter(r => (r.created_at || r.timestamp || "").startsWith(todayStr));
+  const exportDaily = () => {
+    const headers = ["Report ID", "Officer Name", "Rank", "Location", "GPS Lat", "GPS Lng", "Timestamp", "Status"];
+    const rows = filtered.map(r => [
+      r.id,
+      r.name,
+      r.rank,
+      r.location_name || r.locationName,
+      r.gps_lat || "",
+      r.gps_lng || "",
+      r.created_at ? new Date(r.created_at).toLocaleString() : r.timestamp,
+      r.status || "On Duty",
+    ]);
+    const csv = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `HALOPAT_Report_${selectedDate}.csv`;
+    a.click();
+  };
+
+  const stepDay = (direction) => {
+    const d = new Date(selectedDate + "T00:00:00");
+    d.setDate(d.getDate() + direction);
+    setSelectedDate(d.toISOString().slice(0, 10));
+  };
 
   return (
     <div className="fade-in">
@@ -45,7 +75,8 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
         </div>
       </nav>
 
-      <div style={{ padding: "32px 32px", maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ padding: "32px", maxWidth: 1200, margin: "0 auto" }}>
+
         {newAlert && (
           <div className="fade-in" style={{ background: "rgba(240,165,0,0.12)", border: "1px solid #f0a500", borderRadius: 8, padding: "12px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
             <span className="pulse" style={{ color: "#f0a500", fontSize: 20 }}>🔔</span>
@@ -53,20 +84,46 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
           </div>
         )}
 
+        {/* ── Date Selector ── */}
+        <div className="card" style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#7a8099", letterSpacing: 1.5, marginBottom: 6 }}>VIEWING REPORT FOR</div>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={e => setSelectedDate(e.target.value)}
+              style={{ width: 180, padding: "10px 14px", cursor: "pointer" }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+            <button className="btn-gold" onClick={() => setSelectedDate(todayStr)}>📅 TODAY</button>
+            <button className="btn-outline" onClick={() => stepDay(-1)}>← PREV DAY</button>
+            <button className="btn-outline" onClick={() => stepDay(1)}>NEXT DAY →</button>
+          </div>
+          <div style={{ marginLeft: "auto", textAlign: "right" }}>
+            <div style={{ fontSize: 11, color: "#7a8099", letterSpacing: 1 }}>SELECTED DATE</div>
+            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 20, color: "#f0a500", fontWeight: 700 }}>
+              {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Stats for selected date ── */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 28 }}>
           {[
-            { label: "TOTAL PATROL", value: reports.length, color: "#f0a500" },
-            { label: "Today's Patrol", value: todayReports.length, color: "#7ec8ff" },
-            { label: "TSL Officers", value: reports.filter(r => r.rank === "TSL").length, color: "#f0a500" },
-            { label: "TSS Officers", value: reports.filter(r => r.rank === "TSS").length, color: "#7ec8ff" },
+            { label: "TOTAL PATROL", value: filtered.length, color: "#f0a500" },
+            { label: "TSL Officers", value: filtered.filter(r => r.rank === "TSL").length, color: "#f0a500" },
+            { label: "TSS Officers", value: filtered.filter(r => r.rank === "TSS").length, color: "#7ec8ff" },
+            { label: "Locations Active", value: [...new Set(filtered.map(r => r.location_id || r.locationId))].length, color: "#7ec8ff" },
           ].map(s => (
             <div key={s.label} className="card" style={{ textAlign: "center" }}>
               <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 40, fontWeight: 700, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: "#7a8099", letterSpacing: 1 }}>{s.label.toUpperCase()}</div>
+              <div style={{ fontSize: 11, color: "#7a8099", letterSpacing: 1 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
+        {/* ── Filters + Export ── */}
         <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <input placeholder="Search name or location..." style={{ width: 220 }} value={filter} onChange={e => setFilter(e.target.value)} />
@@ -80,13 +137,19 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
               {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </div>
-          <button className="btn-gold" onClick={() => exportExcel(filtered)}>⬇ EXPORT TO EXCEL</button>
+          <button className="btn-gold" onClick={exportDaily}>
+            ⬇ EXPORT {selectedDate} REPORT
+          </button>
         </div>
 
+        {/* ── Table ── */}
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(240,165,0,0.15)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <h3 style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 16, letterSpacing: 2 }}>
               ATTENDANCE <span className="gold">RECORDS</span>
+              <span style={{ fontSize: 12, color: "#7a8099", fontWeight: 400, marginLeft: 12 }}>
+                {filtered.length} record{filtered.length !== 1 ? "s" : ""} found
+              </span>
             </h3>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span className="pulse" style={{ width: 8, height: 8, borderRadius: "50%", background: "#00e87a", display: "inline-block" }} />
@@ -108,7 +171,14 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={7} style={{ textAlign: "center", color: "#7a8099", padding: 32 }}>No records found</td></tr>
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: "center", color: "#7a8099", padding: 48 }}>
+                      <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+                      <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 16, letterSpacing: 1 }}>
+                        No patrols recorded for {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                      </div>
+                    </td>
+                  </tr>
                 ) : filtered.map((r, index) => (
                   <tr key={r.id || index}>
                     <td style={{ color: "#f0a500", fontFamily: "'Rajdhani', sans-serif", fontSize: 12 }}>{r.id}</td>
@@ -134,7 +204,8 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
             </table>
           </div>
         </div>
+
       </div>
     </div>
   );
-}
+      }
