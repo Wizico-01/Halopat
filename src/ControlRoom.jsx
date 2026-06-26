@@ -246,3 +246,4 @@ export default function ControlRoom({ setPage, reports = [], locations = [] }) {
     </div>
   );
                   }
+
